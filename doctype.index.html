@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lexikon - Le mie lezioni</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f8;
+      color: #222;
+    }
+    header {
+      background: #00b4d8;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+    .controls {
+      padding: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .controls select, .controls input {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+      min-width: 150px;
+    }
+    .lesson-list {
+      padding: 20px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .lesson {
+      background: white;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    }
+    .lesson-title {
+      font-size: 1.2em;
+      margin: 0 0 5px 0;
+    }
+    .lesson-date {
+      font-size: 0.9em;
+      color: #666;
+    }
+    .actions {
+      margin-top: 10px;
+    }
+    .actions button {
+      margin-right: 10px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #0077b6;
+      color: white;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s;
+    }
+    .actions button:hover {
+      background-color: #023e8a;
+    }
+    .rating {
+      margin-top: 8px;
+      font-size: 0.9em;
+      color: #f9a825;
+    }
+
+    /* Sezione registrazione */
+    .recording-section {
+      max-width: 700px;
+      margin: 40px auto 60px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .recording-section h2 {
+      margin-top: 0;
+    }
+    .recording-section button {
+      padding: 12px 24px;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
+      background: #0077b6;
+      color: white;
+      cursor: pointer;
+      margin: 0 10px 15px 10px;
+      transition: background-color 0.3s;
+    }
+    .recording-section button:hover:enabled {
+      background-color: #023e8a;
+    }
+    .recording-section button:disabled {
+      background-color: #90caf9;
+      cursor: not-allowed;
+    }
+    audio {
+      margin-top: 15px;
+      width: 100%;
+      border-radius: 6px;
+    }
+    #transcript {
+      margin-top: 15px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      min-height: 60px;
+      background: #eef6fb;
+      color: #222;
+      white-space: pre-wrap;
+      font-family: monospace;
+      text-align: left;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    #transcript.no-support {
+      color: #999;
+      font-style: italic;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Le mie lezioni</h1>
+  </header>
+
+  <div class="controls">
+    <select id="filterMateria">
+      <option value="tutte">Tutte le materie</option>
+      <option value="filosofia">Filosofia</option>
+      <option value="economia">Economia</option>
+    </select>
+    <select id="filterOrdina">
+      <option value="recenti">Ordina per: Più recenti</option>
+      <option value="vecchie">Più vecchie</option>
+      <option value="importanza">Per importanza</option>
+    </select>
+    <input type="text" id="searchLezione" placeholder="Cerca una lezione..." />
+  </div>
+
+  <div class="lesson-list" id="lessonList">
+    <div class="lesson" data-materia="filosofia" data-data="2025-05-27" data-importanza="3" style="border-left: 6px solid #ffc107;">
+      <p class="lesson-title">Lezione di Filosofia - Schopenhauer</p>
+      <p class="lesson-date">Registrata il 27 maggio 2025</p>
+      <div class="actions">
+        <button>📝 Appunti</button>
+        <button>🗺️ Mappa</button>
+        <button>📄 Riassunto</button>
+      </div>
+      <div class="rating">★ ★ ★ ☆ ☆</div>
+    </div>
+
+    <div class="lesson" data-materia="economia" data-data="2025-05-24" data-importanza="4" style="border-left: 6px solid #90ee90;">
+      <p class="lesson-title">Lezione di Economia - Domanda e Offerta</p>
+      <p class="lesson-date">Registrata il 24 maggio 2025</p>
+      <div class="actions">
+        <button>📝 Appunti</button>
+        <button>🗺️ Mappa</button>
+        <button>📄 Riassunto</button>
+      </div>
+      <div class="rating">★ ★ ★ ★ ☆</div>
+    </div>
+  </div>
+
+  <section class="recording-section">
+    <h2>Registrazione Audio</h2>
+    <button id="recordBtn">🎙️ Inizia Registrazione</button>
+    <button id="stopBtn" disabled>⏹️ Ferma Registrazione</button>
+    <audio id="audioPlayback" controls></audio>
+    <div id="transcript" class="no-support">Trascrizione non supportata in questo browser.</div>
+  </section>
+
+  <script>
+    // Filtri e ricerca
+    const filterMateria = document.getElementById('filterMateria');
+    const filterOrdina = document.getElementById('filterOrdina');
+    const searchLezione = document.getElementById('searchLezione');
+    const lessonList = document.getElementById('lessonList');
+
+    function filtraEOrdina() {
+      const materia = filterMateria.value;
+      const ordina = filterOrdina.value;
+      const searchTerm = searchLezione.value.toLowerCase();
+
+      let lessons = Array.from(lessonList.children);
+
+      // Filtra per materia e ricerca testo
+      lessons = lessons.filter(lesson => {
+        const materiaLesson = lesson.getAttribute('data-materia');
+        const title = lesson.querySelector('.lesson-title').textContent.toLowerCase();
+        const matchMateria = (materia === 'tutte' || materiaLesson === materia);
+        const matchSearch = title.includes(searchTerm);
+        return matchMateria && matchSearch;
+      });
+
+      // Ordina
+      lessons.sort((a,b) => {
+        if (ordina === 'recenti') {
+          return new Date(b.getAttribute('data-data')) - new Date(a.getAttribute('data-data'));
+        } else if (ordina === 'vecchie') {
+          return new Date(a.getAttribute('data-data')) - new Date(b.getAttribute('data-data'));
+        } else if (ordina === 'importanza') {
+          return b.getAttribute('data-importanza') - a.getAttribute('data-importanza');
+        }
+        return 0;
+      });
+
+      // Aggiorna lista
+      lessonList.innerHTML = '';
+      lessons.forEach(lesson => lessonList.appendChild(lesson));
+    }
+
+    filterMateria.addEventListener('change', filtraEOrdina);
+    filterOrdina.addEventListener('change', filtraEOrdina);
+    searchLezione.addEventListener('input', filtraEOrdina);
+
+    // Inizializza filtro
+    filtraEOrdina();
+
+
+    // --- REGISTRAZIONE AUDIO E TRASCRIZIONE ---
+
+    const recordBtn = document.getElementById('recordBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const audioPlayback = document.getElementById('audioPlayback');
+    const transcriptDiv = document.getElementById('transcript');
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    recordBtn.onclick = async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Il tuo browser non supporta la registrazione audio.');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+        audioChunks = [];
+
+        mediaRecorder.addEventListener('dataavailable', event => {
+          audioChunks.push(event.data);
+        });
+
+        mediaRecorder.addEventListener('stop', () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          audioPlayback.src = audioUrl;
+          stream.getTracks().forEach(track => track.stop());
+        });
+
+        recordBtn.disabled = true;
+        stopBtn.disabled = false;
+        transcriptDiv.textContent = '';
+        startRecognition();
+
+      } catch (err) {
+        alert('Errore nell\'accedere al microfono: ' + err.message);
+      }
+    };
+
+    stopBtn.onclick = () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        recordBtn.disabled = false;
+        stopBtn.disabled = true;
+        stopRecognition();
+      }
+    };
+
+    // Speech recognition
+    let recognition;
+    let recognizing = false;
+
+    function startRecognition() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        transcriptDiv.textContent = 'Trascrizione non supportata in questo browser.';
+        transcriptDiv.classList.add('no-support');
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'it-IT';
+      recognition.interimResults = true;
+      recognition.continuous = true;
+
+      recognition.onstart = () => {
+        recognizing = true;
+        transcriptDiv.textContent = '';
+        transcriptDiv.classList.remove('no-support');
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+      };
+
+      recognition.onend = () => {
+        recognizing = false;
+      };
+
+      let finalTranscript = '';
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript + '\n';
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        transcriptDiv.textContent = finalTranscript + interimTranscript;
+      };
+
+      recognition.start();
+    }
+
+    function stopRecognition() {
+      if (recognition && recognizing) {
+        recognition.stop();
+      }
+    }
+  </script>
+</body>
+</html>
