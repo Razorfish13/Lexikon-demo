@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<title>Test Registrazione</title>
+<style>
+  .recording-section {
+    max-width: 600px;
+    margin: 20px auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+  }
+  button {
+    padding: 12px 24px;
+    font-size: 1em;
+    border: none;
+    border-radius: 8px;
+    background: #0077b6;
+    color: white;
+    cursor: pointer;
+    margin: 0 10px;
+  }
+  audio {
+    margin-top: 15px;
+    width: 100%;
+  }
+  #transcript {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    min-height: 60px;
+    background: #eef6fb;
+    color: #222;
+    white-space: pre-wrap;
+    font-family: monospace;
+  }
+  #transcript.no-support {
+    color: #999;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+  <section class="recording-section">
+    <h2>Registrazione Audio</h2>
+    <button id="recordBtn">🎙️ Inizia Registrazione</button>
+    <button id="stopBtn" disabled>⏹️ Ferma Registrazione</button>
+    <audio id="audioPlayback" controls></audio>
+    <div id="transcript" class="no-support">Trascrizione non supportata in questo browser.</div>
+  </section>
+
+  <script>
+    const recordBtn = document.getElementById('recordBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const audioPlayback = document.getElementById('audioPlayback');
+    const transcriptDiv = document.getElementById('transcript');
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    recordBtn.onclick = async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Il tuo browser non supporta la registrazione audio.');
+        return;
+      }
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.start();
+        audioChunks = [];
+
+        mediaRecorder.addEventListener('dataavailable', event => {
+          audioChunks.push(event.data);
+        });
+
+        mediaRecorder.addEventListener('stop', () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          audioPlayback.src = audioUrl;
+          stream.getTracks().forEach(track => track.stop());
+        });
+
+        recordBtn.disabled = true;
+        stopBtn.disabled = false;
+        transcriptDiv.textContent = '';
+        startRecognition();
+
+      } catch (err) {
+        alert('Errore nell\'accedere al microfono: ' + err.message);
+      }
+    };
+
+    stopBtn.onclick = () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        recordBtn.disabled = false;
+        stopBtn.disabled = true;
+        stopRecognition();
+      }
+    };
+
+    // Speech recognition
+    let recognition;
+    let recognizing = false;
+
+    function startRecognition() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        transcriptDiv.textContent = 'Trascrizione non supportata in questo browser.';
+        transcriptDiv.classList.add('no-support');
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'it-IT';
+      recognition.interimResults = true;
+      recognition.continuous = true;
+
+      recognition.onstart = () => {
+        recognizing = true;
+        transcriptDiv.textContent = '';
+        transcriptDiv.classList.remove('no-support');
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+      };
+
+      recognition.onend = () => {
+        recognizing = false;
+      };
+
+      let finalTranscript = '';
+      recognition.onresult = (event) => {
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript + '\n';
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        transcriptDiv.textContent = finalTranscript + interimTranscript;
+      };
+
+      recognition.start();
+    }
+
+    function stopRecognition() {
+      if (recognition && recognizing) {
+        recognition.stop();
+      }
+    }
+  </script>
+</body>
+</html>
